@@ -113,7 +113,7 @@ def main():
     print(dbConn.insert_score(s))
 
     context = ('cert.pem', 'key.pem')
-    app.run(debug=True,host="localhost", port=4443, ssl_context=context)
+    app.run(debug=True,host="localhost", port=8443, ssl_context=context)
 
 
 if __name__ == "__main__":
