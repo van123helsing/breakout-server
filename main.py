@@ -47,6 +47,15 @@ def create_room():
     return dbConn.insert_room(r)
 
 
+@app.route('/player-number', methods=['POST', 'OPTIONS'])
+@cross_origin(supports_credentials=True)
+def player_number():
+    req = json.loads(request.data.decode("utf-8"))
+    p = req.get('playerId')
+    r = req.get('roomId')
+    return dbConn.get_player_number(r,p)
+
+
 @app.route('/player', methods=['POST', 'OPTIONS'])
 @cross_origin(supports_credentials=True)
 def create_player():
@@ -82,38 +91,25 @@ def join_room():
 @app.route('/leave-room', methods=['POST', 'OPTIONS'])
 @cross_origin(supports_credentials=True)
 def leave_room():
-    req = json.loads(request.data.decode("utf-8"))
-    r = dbConn.get_room(req.get('idRoom'))
-    player1 = None if r[0]['player1'] == req.get('idPlayer') else r[0]['player1']
-    player2 = None if r[0]['player2'] == req.get('idPlayer') else r[0]['player2']
-    player3 = None if r[0]['player3'] == req.get('idPlayer') else r[0]['player3']
-    player4 = None if r[0]['player4'] == req.get('idPlayer') else r[0]['player4']
-    room = Room(r[0]['room_name'], r[0]['room_password'], player1, player2, player3, player4)
-
-    return dbConn.update_room(room,  req.get('roomId'))
+    p = int(request.values.get('idPlayer'))
+    return dbConn.delete_player(p)
 
 
-@app.route('/scores', methods=['POST', 'OPTIONS'])
+@app.route('/score', methods=['POST', 'OPTIONS'])
 @cross_origin(supports_credentials=True)
 def create_score():
-    s = Scores("Najboljsi", 1000)
-    return dbConn.insert_score(s)
+    req = json.loads(request.data.decode("utf-8"))
+    s = req.get('score')
+    p = req.get('player_name')
+    score = Scores(p, s)
+    return dbConn.insert_score(score)
 
 
 def main():
     dbConn.empty_database()
-    p = Player("player3")
-    r = Room("Room1", "", None, None, None, None)
-    s = Scores("Najboljsi", 1000)
-    p_id = dbConn.insert_player(p)
-    print(p_id)
-    r2 = Room("Room2", "fgh", p_id, None, None, None)
-    print(dbConn.insert_room(r))
-    print(dbConn.insert_room(r2))
-    print(dbConn.insert_score(s))
 
     context = ('cert.pem', 'key.pem')
-    app.run(debug=True,host="localhost", port=8443, ssl_context=context)
+    app.run(debug=True, host="0.0.0.0", port=8443, ssl_context=context)
 
 
 if __name__ == "__main__":

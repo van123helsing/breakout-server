@@ -2,6 +2,7 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 import json
 from RoomDump import RoomDump
+from PlayerNumber import PlayerNumber
 
 
 class DataBase:
@@ -54,11 +55,9 @@ class DataBase:
         cur = self.conn.cursor()
         query = """INSERT INTO public.scores (player_name, score) VALUES (%s, %s) RETURNING scores_id;"""
         cur.execute(query, (data_object.name, data_object.score))
-        scores_id = cur.fetchone()
+        score = cur.fetchone()
         cur.close()
-        if scores_id is not None:
-            return scores_id[0]
-        return scores_id
+        return json.dumps(score, indent=2)
 
     def empty_database(self):
         cur = self.conn.cursor()
@@ -74,6 +73,23 @@ class DataBase:
         value = cur.fetchall()
         cur.close()
         return json.dumps(value, indent=2)
+
+    def get_player_number(self, room_id, player_id):
+        cur = self.conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute(
+            "SELECT * FROM public.rooms WHERE room_id =%s AND player1 =%s OR player2 =%s OR player3 =%s OR player4 =%s",
+            (room_id,player_id,player_id,player_id,player_id))
+        value = cur.fetchone()
+        cur.close()
+        if value['player1'] == player_id:
+            return json.dumps(PlayerNumber(1).dump(), indent=2)
+        if value['player2'] == player_id:
+            return json.dumps(PlayerNumber(2).dump(), indent=2)
+        if value['player3'] == player_id:
+            return json.dumps(PlayerNumber(3).dump(), indent=2)
+        if value['player4'] == player_id:
+            return json.dumps(PlayerNumber(4).dump(), indent=2)
+
 
     def get_rooms(self):
         cur = self.conn.cursor(cursor_factory=RealDictCursor)
@@ -123,3 +139,10 @@ class DataBase:
         room = cur.fetchone()
         cur.close()
         return json.dumps(room, indent=2)
+
+
+    def delete_player(self, id):
+        cur = self.conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute("Delete from public.players where player_id =%s",(id,))
+        cur.close()
+        return json.dumps({"deleted": True}, indent=2)
