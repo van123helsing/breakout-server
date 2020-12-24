@@ -3,7 +3,7 @@ from flask import Flask
 from PlayerJoined import PlayerJoined
 import requests
 
-
+context = ('cert.pem', 'key.pem')
 sio = socketio.Server(async_mode='threading', cors_allowed_origins='*')
 app = Flask(__name__)
 app.wsgi_app = socketio.WSGIApp(sio, app.wsgi_app)
@@ -61,4 +61,4 @@ def update_paddle(sid, data):
 
 
 if __name__ == '__main__':
-    app.run(threaded=True,debug=True)
+    app.run(threaded=True, debug=True, ssl_context=context)
